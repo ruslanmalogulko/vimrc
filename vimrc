@@ -51,8 +51,15 @@
         Bundle 'mattn/emmet-vim'
         Bundle 'vxsx/vim-snippets'
         Bundle 'tpope/vim-surround'
-        Bundle 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'}
+        " Bundle 'Lokaltog/powerline'
         Bundle 'git://github.com/godlygeek/tabular.git'
+        Bundle 'isRuslan/vim-es6'
+        Bundle 'mattn/webapi-vim'
+        Bundle 'mattn/gist-vim'
+        Bundle 'https://github.com/gorodinskiy/vim-coloresque.git'
+        " for better times :)
+        " Bundle 'git://github.com/python-rope/ropevim.git'
+        " Bundle 'klen/python-mode'
     "}}}
 
     filetype plugin indent on     " required
@@ -78,7 +85,11 @@ set ruler
 
     set visualbell
     set scrolloff=3
+    set scrolljump=8
+    set cursorcolumn
+    set lazyredraw
     set showcmd
+    let html_no_rendering=1
 
     set rnu
 
@@ -89,9 +100,9 @@ set ruler
         set statusline+=%#warningmsg#
         set statusline+=%{SyntasticStatuslineFlag()}
         set statusline+=%*
-        "set statusline+=%=%-16(\ %l,%c%V\ %)%P
-        "set statusline=\ %<%-15.25(%f%)%m%r%h\ %w\ \ 
-        "set statusline+=\ \ \ [%{&ff}/%Y]%=file=%{&fileencoding}\ enc=%{&encoding}\ 
+        " set statusline+=%=%-16(\ %l,%c%V\ %)%P
+        " set statusline=\ %<%-15.25(%f%)%m%r%h\ %w\ \ 
+        set statusline+=\ \ \ [%{&ff}/%Y]%=file=%{&fileencoding}\ enc=%{&encoding}\ 
         set statusline+=\ \ \ %<%.99(%{hostname()}:%{CurDir()}%)\ 
         set statusline+=\ \ \ %=%-10.(%l,%c%V%)\ %p%%/%L
 
@@ -109,11 +120,11 @@ set ruler
         endfunction
     "}}}
     " Colorscheme "{{{
-        let g:solarized_visibility="low"
+        let g:solarized_visibility="normal"
         let g:solarized_contrast="normal"
-        let g:solarized_diffmode="high"
+        let g:solarized_diffmode="normal"
         let g:solarized_termtrans=1
-        set background=light
+        set background=dark
         color solarized
     "}}}
     let g:Powerline_symbols = 'fancy'
@@ -139,13 +150,13 @@ set ruler
     map <S-F2> :emenu FileFormat.
 "}}}
 " Whitespace and indentation "{{{
-    set nowrap
+    " set nowrap
 
     set tabstop=4
     set shiftwidth=4
     set softtabstop=4
     set expandtab
-
+    set cino=JN
     " Invisible characters
     set list
     if has('multi_byte')
@@ -158,11 +169,11 @@ set ruler
     if has("linebreak")
         let &sbr = nr2char(8618).' '  " Show ↪ at the beginning of wrapped lines
     endif
-  
-    set hls
+
+    " set hls
     let g:HLSpace = 1
     let g:HLColorScheme = g:colors_name
-    function ToggleSpaceUnderscoring()
+    function! ToggleSpaceUnderscoring ()
         if g:HLSpace
             highlight Search cterm=underline gui=underline ctermbg=NONE guibg=NONE ctermfg=NONE guifg=NONE
             let @/ = " "
@@ -173,7 +184,7 @@ set ruler
         endif
         let g:HLSpace = !g:HLSpace
     endfunction
-    nmap <silent> <F3> <Esc>:call ToggleSpaceUnderscoring()<CR>
+    nmap <silent> <F3>:call ToggleSpaceUnderscoring()<CR>
 
     " allow backspacing over everything in insert mode
     set backspace=indent,eol,start
@@ -240,10 +251,10 @@ set ruler
     nmap <C-l> <C-w>l
 
     " Window resizing mappings "{{{
-        nnoremap <S-Up>    5<C-w>+
-        nnoremap <S-Down>  5<C-w>-
-        nnoremap <S-Left>  5<C-w><
-        nnoremap <S-Right> 5<C-w>>
+        nnoremap <S-Up>    20<C-w>+
+        nnoremap <S-Down>  20<C-w>-
+        nnoremap <S-Left>  20<C-w><
+        nnoremap <S-Right> 20<C-w>>
     "}}}
     " Tabs mappings "{{{
         nnoremap <Leader>[ gT
@@ -286,6 +297,8 @@ set ruler
     " Inserts the path of the currently edited file into a command
     " Command mode: Ctrl+P
     cmap <C-P> <C-R>=expand("%:p:h") . "/" <CR>
+    " while Ctrl-o: ask menu with options
+    let g:ctrlp_arg_map = 1
 
     " cd to the directory containing the file in the buffer
     nmap  <leader>cd :lcd <C-R>=expand("%:p:h")<CR><CR>
@@ -327,9 +340,6 @@ set ruler
         " imap <C-j> <C-o>j
         " imap <C-k> <C-o>k
         " imap <C-l> <C-o>l
-
-        nmap <tab> %
-        vmap <tab> %
 
         " this is for learning hjkl moving
         nnoremap <up>    <nop>
@@ -397,14 +407,33 @@ set ruler
     set directory=~/.vim/backup
     set undofile
     set undodir=~/.vim/backup
-"}}}
+"default}}}
 " Powerline support "{{{
+     set rtp+=~/powerline/powerline/bindings/vim
     set guifont=PowerlineSybmols:h15
     let g:Powerline_symbols = 'fancy'
     set encoding=utf-8
     set t_Co=256
     set term=xterm-256color
-    set termencoding=utf-8
+    " These lines setup the environment to show graphics and colors correctly.
+    set nocompatible
+     
+    let g:minBufExplForceSyntaxEnable = 1
+    python from powerline.vim import setup as powerline_setup
+    python powerline_setup()
+    python del powerline_setup
+     
+    if ! has('gui_running')
+       set ttimeoutlen=10
+       augroup FastEscape
+          autocmd!
+          au InsertEnter * set timeoutlen=0
+          au InsertLeave * set timeoutlen=1000
+       augroup END
+    endif
+     
+    set laststatus=2 " Always display the statusline in all windows
+    set noshowmode " Hide the default mode text (e.g. -- INSERT -- below the statusline)ing=utf-8
 "}}}
 " Cyrillic keys mappings "{{{
     map ё `
@@ -522,26 +551,36 @@ set ruler
         nnoremap <Leader>gu :GundoToggle<CR>
     "}}}
     " Syntastic "{{{
+        set statusline+=%#warningmsg#
+        set statusline+=%{SyntasticStatuslineFlag()}
+        set statusline+=%*
+
+        let g:syntastic_error_symbol='✗'
+        let g:syntastic_warning_symbol='⚠'
+        let g:syntastic_style_error_symbol = '✗'
+        let g:syntastic_style_warning_symbol = '⚠'
+        let g:syntastic_always_populate_loc_list = 1
         let g:syntastic_check_on_open=1
         let g:syntastic_enable_signs=0
-        " let g:syntastic_enable_balloons = 1
+        let g:syntastic_enable_balloons = 1
+        let g:syntastic_enable_hightlighting = 1
         let g:syntastic_mode_map = { 'mode': 'passive',
-                                   \ 'active_filetypes': ['javascript', 'php', 'coffee'],
-                                   \ 'passive_filetypes': [] }
-        let g:syntastic_javascript_checkers = ['jshint', 'jscs']
-        let g:syntastic_html_checkers = ['validator']
+                                   \ 'active_filetypes': ['javascript', 'php', 'coffee', 'html'],
+                                   \ 'passive_filetypes': ['htmldjango'] }
+        let g:syntastic_javascript_checkers = ['eslint']
+        let g:syntastic_html_checkers = ['w3']
     " }}}
     " IndentLine "{{{
-        let g:indentLine_char = '|'
+        let g:indentLine_char = '¦'
         let g:indentLine_noConcealCursor = 1
 
         let g:indentLine_color_term = 7
         let g:indentLine_color_gui = '#E4E1D2'
 
-        let g:indentLine_faster = 1
+        let g:indentLine_faster = 0
 
         if &background is# "dark"
-            let g:indentLine_color_term = 1 
+            let g:indentLine_color_term = 238
             let g:indentLine_color_gui = '#003540'
         endif
     " }}}
@@ -595,4 +634,71 @@ set ruler
         execute "silent !csscomb " . expand('%')
         redraw!
     endfunction
+" }}}
+" RopeVim" {{{
+    let ropevim_vim_completion=1
+" }}}
+" Python mode" {{{
+    " Activate rope
+    " Keys:
+    " K             Show python docs
+    " <Ctrl-Space>  Rope autocomplete
+    " <Ctrl-c>g     Rope goto definition
+    " <Ctrl-c>d     Rope show documentation
+    " <Ctrl-c>f     Rope find occurrences
+    " <Leader>b     Set, unset breakpoint (g:pymode_breakpoint enabled)
+    " [[            Jump on previous class or function (normal, visual, operator modes)
+    " ]]            Jump on next class or function (normal, visual, operator modes)
+    " [M            Jump on previous class or method (normal, visual, operator modes)
+    " ]M            Jump on next class or method (normal, visual, operator modes)
+    let g:pymode_rope = 1
+
+    " Documentation
+    let g:pymode_doc = 1
+    let g:pymode_doc_key = 'K'
+
+    "Linting
+    let g:pymode_lint = 1
+    let g:pymode_lint_checker = "pyflakes,pep8"
+    " Auto check on save
+    let g:pymode_lint_write = 1
+
+    " Support virtualenv
+    let g:pymode_virtualenv = 1
+
+    " Enable breakpoints plugin
+    let g:pymode_breakpoint = 1
+    let g:pymode_breakpoint_bind = '<leader>b'
+
+    " syntax highlighting
+    let g:pymode_syntax = 1
+    let g:pymode_syntax_all = 1
+    let g:pymode_syntax_indent_errors = g:pymode_syntax_all
+    let g:pymode_syntax_space_errors = g:pymode_syntax_all
+
+    " Don't autofold code
+    let g:pymode_folding = 0
+" }}}
+"
+" {{{
+    set mps+=<:>
+" }}}
+"
+" Grep buffers search {{{
+    function! BuffersList()
+      let all = range(0, bufnr('$'))
+      let res = []
+      for b in all
+        if buflisted(b)
+          call add(res, bufname(b))
+        endif
+      endfor
+      return res
+    endfunction
+
+    function! AckBuffers (expression)
+      exec 'Ack! '.a:expression.' '.join(BuffersList())
+    endfunction
+
+    command! -nargs=+ AckBufs call AckBuffers(<q-args>)
 " }}}
